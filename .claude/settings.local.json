@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e:*)",
+      "Bash(node --eval:*)",
+      "Bash(node:*)",
+      "Bash(ping:*)",
+      "Bash(npm run dev:*)",
+      "Bash(start \"\" \"http://localhost:3001\")",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(start \"\" \"http://localhost:3000\")",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(git -C \"C:/users/faree/claudefk/vaultkey\" status:*)",
+      "Bash(ls:*)",
+      "Bash(netsh advfirewall firewall show rule:*)",
+      "Bash(netsh advfirewall firewall add:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx vite build)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npm install:*)",
+      "Bash(git remote add:*)",
+      "Bash(git init:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
