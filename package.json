@@ -18,7 +18,6 @@
     "dexie": "^3.2.4",
     "dexie-react-hooks": "^1.1.7",
     "lucide-react": "^0.294.0",
-    "next": "^16.0.7",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-router-dom": "^6.20.1"
