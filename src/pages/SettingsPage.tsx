@@ -365,13 +365,13 @@ const SettingsPage: React.FC = () => {
               <p className="text-base text-slate-300 mb-2">
                 <strong>FileSafe</strong>
               </p>
-              <p className="text-base text-slate-400 mb-1">Version 1.2.1</p>
+              <p className="text-base text-slate-400 mb-1">Version 1.1.0</p>
               <p className="text-xs text-slate-500">Build: {new Date().toISOString().split('T')[0]}</p>
               <p className="text-sm text-slate-500 mt-3">
                 A personal document assistant with instant search
               </p>
               <div className="mt-3 text-xs text-cyan-400">
-                <p className="font-semibold mb-1">✨ What's New in v1.2.1:</p>
+                <p className="font-semibold mb-1">✨ What's New in v1.1.0:</p>
                 <ul className="space-y-1 text-slate-400">
                   <li>• Beautiful Factory Reset modal with type-to-confirm</li>
                   <li>• Auto-redirect to onboarding after reset</li>
@@ -385,8 +385,8 @@ const SettingsPage: React.FC = () => {
             {/* Developer Credits */}
             <div className="border-t border-slate-700/50 pt-4">
               <p className="text-sm text-slate-400 mb-2">Developed by</p>
-              <a 
-                href="https://linkedin.com/in/fareedkhankk/"
+              <a
+                href="https://www.linkedin.com/in/fareedkhankk"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-base font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"

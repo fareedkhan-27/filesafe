@@ -483,7 +483,7 @@ const OnboardingPage: React.FC = () => {
 
         {/* Version Number */}
         <p className="text-center text-slate-400 text-xs mt-4 opacity-60">
-          FileSafe v1.2.1
+          FileSafe v1.1.0
         </p>
       </div>
     </div>

@@ -148,7 +148,7 @@ const UserMenu: React.FC = () => {
           <div className="px-6 py-6 border-t border-gray-200 dark:border-gray-800 mt-auto">
             <div className="text-center space-y-1">
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                FileSafe v1.2.1
+                FileSafe v1.1.0
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Personal Document Assistant

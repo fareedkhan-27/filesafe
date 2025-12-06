@@ -180,7 +180,7 @@ const LockScreen: React.FC = () => {
             Lost your recovery key? Contact support
           </p>
           <p className="text-primary-200 dark:text-primary-300 text-xs opacity-75">
-            FileSafe v1.2.1
+            FileSafe v1.1.0
           </p>
         </div>
       </div>

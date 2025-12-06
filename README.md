@@ -1,7 +1,8 @@
 # 🔐 FileSafe - Secure Document Vault
 
-**Version:** 1.2.1  
-**Status:** Production Ready  
+**Version:** 1.1.0
+**Developer:** Fareed Khan ([LinkedIn](https://www.linkedin.com/in/fareedkhankk))
+**Status:** Production Ready
 **Type:** Progressive Web App (PWA)
 
 ---

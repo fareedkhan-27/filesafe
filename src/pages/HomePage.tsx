@@ -75,7 +75,7 @@ const HomePage: React.FC = () => {
                 <p className="text-base text-slate-400 mt-1">Your secure document vault</p>
               </div>
               <span className="px-2.5 py-1 text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-lg">
-                v1.2.1
+                v1.1.0
               </span>
             </div>
             <UserMenu />
@@ -276,7 +276,7 @@ const HomePage: React.FC = () => {
       {/* Version Footer */}
       <div className="fixed bottom-20 right-4 z-10">
         <div className="bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-full px-3 py-1.5 text-xs text-slate-400">
-          v1.2.1
+          v1.1.0
         </div>
       </div>
 
