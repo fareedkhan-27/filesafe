@@ -1,0 +1,399 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Screen Reader Only - Accessible Hidden Content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip Navigation Link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-primary);
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 100;
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+@layer base {
+  /* Root font size variables for easy adjustment */
+  :root {
+    --font-size-base: 18px;
+    --font-size-sm: 16px;
+    --font-size-xs: 14px;
+    --font-size-lg: 20px;
+    --font-size-xl: 22px;
+    --font-size-2xl: 24px;
+  }
+
+  body {
+    @apply bg-gray-900 text-gray-50;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: var(--font-size-base); /* Increased from 17px to 18px */
+    line-height: 1.7; /* Increased for better readability */
+    letter-spacing: -0.011em;
+    background: #0F172A; /* Dark slate background */
+  }
+
+  * {
+    @apply touch-manipulation;
+  }
+
+  input, textarea, button {
+    @apply focus:outline-none;
+    font-size: var(--font-size-base); /* Increased from 17px to 18px */
+  }
+
+  button {
+    font-weight: 600; /* Increased from 500 for better visibility */
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+    letter-spacing: -0.022em;
+    line-height: 1.3;
+  }
+
+  h1 {
+    font-weight: 700;
+    font-size: var(--font-size-2xl);
+  }
+
+  h2 {
+    font-size: var(--font-size-xl);
+  }
+
+  h3 {
+    font-size: var(--font-size-lg);
+  }
+
+  /* Labels should be clear and readable */
+  label {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+  }
+
+  /* Ensure minimum touch targets for all interactive elements */
+  button, a, input[type="checkbox"], input[type="radio"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Enhanced Focus Indicators for Accessibility */
+  *:focus {
+    outline: none;
+  }
+
+  *:focus-visible {
+    outline: 3px solid theme('colors.primary.600');
+    outline-offset: 3px;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  }
+
+  /* High visibility focus for interactive elements */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid theme('colors.primary.600');
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  }
+
+  /* Keyboard navigation helpers */
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid theme('colors.primary.600');
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Safe area for notched devices */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Button styles - Modern dark theme with teal accents */
+  .btn-primary {
+    @apply bg-gradient-to-r from-cyan-500 to-teal-500 text-white px-7 py-4 rounded-xl font-bold
+           hover:from-cyan-600 hover:to-teal-600 active:from-cyan-700 active:to-teal-700
+           transition-all shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:shadow-cyan-500/30 
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    font-size: var(--font-size-lg);
+    min-height: 56px;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-secondary {
+    @apply bg-slate-700/50 text-gray-100 px-7 py-4 rounded-xl font-bold
+           hover:bg-slate-700 active:bg-slate-600
+           border border-slate-600/50
+           transition-all shadow-sm;
+    font-size: var(--font-size-lg);
+    min-height: 56px;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-danger {
+    @apply bg-red-600/90 text-white px-7 py-4 rounded-xl font-bold
+           hover:bg-red-600 active:bg-red-700
+           transition-all shadow-md shadow-red-500/20;
+    font-size: var(--font-size-lg);
+    min-height: 56px;
+    letter-spacing: 0.01em;
+  }
+
+  /* Card styles - Modern dark design */
+  .card {
+    @apply bg-slate-800/50 rounded-2xl shadow-lg border border-slate-700/50 p-6;
+    backdrop-filter: blur(10px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card:hover {
+    @apply shadow-xl border-slate-600/50;
+    transform: translateY(-2px);
+    background: rgba(30, 41, 59, 0.6);
+  }
+
+  .card:active {
+    transform: translateY(0);
+  }
+
+  /* Input styles - Modern dark design */
+  .input {
+    @apply w-full px-5 py-4 rounded-xl border-2 border-slate-700
+           bg-slate-900/50 text-gray-100
+           focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20
+           transition-all;
+    font-size: var(--font-size-base); /* 18px */
+    min-height: 60px; /* Increased from 56px for easier tapping */
+    line-height: 1.5;
+  }
+
+  /* Select dropdowns - Match input styling */
+  select.input {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 3rem;
+  }
+
+  /* Badge styles - Modern dark theme */
+  .badge {
+    @apply px-4 py-2 rounded-full font-bold;
+    font-size: var(--font-size-sm);
+  }
+
+  .badge-red {
+    @apply bg-red-500/20 text-red-300 border border-red-500/30;
+  }
+
+  .badge-yellow {
+    @apply bg-amber-500/20 text-amber-300 border border-amber-500/30;
+  }
+
+  .badge-green {
+    @apply bg-emerald-500/20 text-emerald-300 border border-emerald-500/30;
+  }
+
+  .badge-gray {
+    @apply bg-slate-700/50 text-slate-300 border border-slate-600/50;
+  }
+
+  /* Text size utilities - Elderly-friendly */
+  .text-base-plus {
+    font-size: var(--font-size-base);
+    line-height: 1.7;
+  }
+
+  .text-lg-plus {
+    font-size: var(--font-size-lg);
+    line-height: 1.6;
+  }
+
+  .text-xl-plus {
+    font-size: var(--font-size-xl);
+    line-height: 1.5;
+  }
+
+  /* Help text - More visible */
+  .help-text {
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  /* Error text - Clear and visible */
+  .error-text {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    @apply text-red-600 dark:text-red-400;
+  }
+
+  /* Success text - Clear and visible */
+  .success-text {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    @apply text-green-600 dark:text-green-400;
+  }
+
+  /* Link styles - Larger and more visible */
+  a:not(.btn-primary):not(.btn-secondary) {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    @apply text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+}
+
+/* Responsive font sizing for different screen sizes */
+@media (max-width: 640px) {
+  /* Mobile - Keep sizes comfortable */
+  :root {
+    --font-size-base: 18px;
+    --font-size-sm: 16px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Tablet - Slightly larger */
+  :root {
+    --font-size-base: 19px;
+    --font-size-sm: 17px;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop - Comfortable for reading */
+  :root {
+    --font-size-base: 19px;
+    --font-size-sm: 17px;
+  }
+}
+
+/* High contrast mode for better accessibility */
+@media (prefers-contrast: high) {
+  body {
+    @apply text-black dark:text-white;
+  }
+
+  .input {
+    @apply border-gray-900 dark:border-gray-100;
+    border-width: 3px;
+  }
+
+  button {
+    border: 2px solid currentColor;
+  }
+
+  a {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+
+  .card {
+    border-width: 3px;
+  }
+
+  /* Ensure all text has minimum contrast ratio of 7:1 */
+  .text-gray-500,
+  .text-gray-400 {
+    @apply text-gray-700 dark:text-gray-300;
+  }
+
+  /* Make badges more visible */
+  .badge {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* PWA specific styles */
+@media (display-mode: standalone) {
+  body {
+    @apply select-none;
+  }
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Active scale utility */
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+/* Smooth transitions */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

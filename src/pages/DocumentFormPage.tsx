@@ -11,6 +11,7 @@ import {
 import { Document, DocumentType, CustomField } from '../types/vault';
 import { checkDuplicateDocument } from '../utils/duplicateChecker';
 import { formatName, formatUpperCase, COUNTRIES } from '../utils/formatters';
+import { DOCUMENT_TYPE_CONFIGS, isFieldRequired, getDefaultTitle } from '../config/documentTypes';
 
 const DocumentFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -109,23 +110,21 @@ const DocumentFormPage: React.FC = () => {
     }
   }, [searchParams, isEditing]);
 
+  // Auto-fill title when document type changes
   useEffect(() => {
-    // Set default title based on document type
-    if (!isEditing && !title) {
-      const defaultTitles: Record<DocumentType, string> = {
-        passport: 'Passport',
-        driving_license: 'Driving License',
-        national_id: 'National ID',
-        visa: 'Visa',
-        residence_permit: 'Residence Permit',
-        insurance: 'Insurance Policy',
-        bank_card: 'Bank Card',
-        medical_card: 'Medical Card',
-        custom: 'Document'
-      };
-      setTitle(defaultTitles[documentType]);
-    }
-  }, [documentType, isEditing, title]);
+    if (isEditing) return; // Don't auto-fill in edit mode
+
+    const newTitle = getDefaultTitle(documentType);
+
+    console.log('🔍 Auto-fill effect running:', {
+      documentType,
+      currentTitle: title,
+      newTitle,
+      isEditing
+    });
+
+    setTitle(newTitle);
+  }, [documentType]); // Only depend on documentType, not isEditing or title
 
   const handleAddCustomField = () => {
     setCustomFields([
@@ -153,18 +152,17 @@ const DocumentFormPage: React.FC = () => {
     setCustomFields(updated);
   };
 
-  // Comprehensive form validation
+  // Comprehensive form validation using centralized config
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    // Title is required
-    if (!title.trim()) {
+    // Validate required fields based on document type config
+    if (isFieldRequired(documentType, 'title', isQuickMode) && !title.trim()) {
       errors.title = 'Document title is required';
     }
 
-    // Expiry date is required for critical documents
-    const documentsRequiringExpiry = ['passport', 'driving_license', 'national_id', 'visa', 'residence_permit'];
-    if (documentsRequiringExpiry.includes(documentType) && !expiryDate) {
+    // Validate expiry date requirement
+    if (isFieldRequired(documentType, 'expiry_date', isQuickMode) && !expiryDate) {
       errors.expiryDate = 'Expiry date is required for this document type';
     }
 
@@ -201,17 +199,22 @@ const DocumentFormPage: React.FC = () => {
       }
     }
 
-    // Validate document numbers based on type
-    if (documentType === 'passport' && isQuickMode && !passportNumber.trim()) {
+    // Validate document numbers based on type using centralized config
+    if (isFieldRequired(documentType, 'passport_number', isQuickMode) && !passportNumber.trim()) {
       errors.passportNumber = 'Passport number is required';
     }
 
-    if (documentType === 'driving_license' && isQuickMode && !licenseNumber.trim()) {
+    if (isFieldRequired(documentType, 'license_number', isQuickMode) && !licenseNumber.trim()) {
       errors.licenseNumber = 'License number is required';
     }
 
-    if (documentType === 'national_id' && isQuickMode && !idNumber.trim()) {
+    if (isFieldRequired(documentType, 'id_number', isQuickMode) && !idNumber.trim()) {
       errors.idNumber = 'ID number is required';
+    }
+
+    // Validate insurance type requirement
+    if (isFieldRequired(documentType, 'insurance_type', isQuickMode) && !insuranceType.trim()) {
+      errors.insuranceType = 'Insurance type is required';
     }
 
     // Validate passport number format (basic check)
@@ -254,13 +257,14 @@ const DocumentFormPage: React.FC = () => {
     setIsLoading(true);
     try {
       // Check for duplicate documents (only for new documents)
+      // Rule: Title must be unique PER PROFILE (case-insensitive)
       if (!isEditing) {
         const isDuplicate = await checkDuplicateDocument(title, profileId);
         if (isDuplicate) {
           const ownerProfile = profiles.find(p => p.id === profileId);
           const ownerName = ownerProfile ? `${ownerProfile.avatar} ${ownerProfile.name}` : 'this profile';
           showErrorToast(
-            `A document with the title "${title}" already exists for ${ownerName}. Please use a different title.`
+            `A document titled "${title}" already exists for ${ownerName}. Each person's documents must have unique titles. Please choose a different title (e.g., "Passport - UAE", "Passport - 2024").`
           );
           setIsLoading(false);
           return;
@@ -346,18 +350,19 @@ const DocumentFormPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 safe-top">
-        <div className="px-4 py-4">
+    <div className="min-h-screen bg-slate-50 pb-20 safe-bottom">
+      {/* Header - Clean iOS style */}
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-10 safe-top shadow-sm">
+        <div className="px-5 py-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/home')}
-              className="p-2 -ml-2 text-gray-600 hover:text-gray-900"
+              className="p-2 -ml-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all min-w-touch min-h-touch flex items-center justify-center"
+              aria-label="Back to home"
             >
               <ArrowLeft size={24} />
             </button>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-slate-900">
               {isEditing ? 'Edit Document' : 'Add Document'}
             </h1>
           </div>
@@ -365,19 +370,19 @@ const DocumentFormPage: React.FC = () => {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6" noValidate aria-label={isEditing ? 'Edit document form' : 'Add new document form'}>
+      <form onSubmit={handleSubmit} className="px-5 py-6 space-y-6" noValidate aria-label={isEditing ? 'Edit document form' : 'Add new document form'}>
         {/* Validation Error Summary */}
         {Object.keys(validationErrors).length > 0 && (
-          <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-xl p-5">
+          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-5">
             <div className="flex items-start gap-3 mb-3">
-              <AlertCircle size={24} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle size={24} className="text-red-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-lg font-bold text-red-900 dark:text-red-200 mb-2">
+                <h3 className="text-lg font-bold text-red-900 mb-2">
                   Please fix {Object.keys(validationErrors).length} {Object.keys(validationErrors).length === 1 ? 'error' : 'errors'}:
                 </h3>
                 <ul className="space-y-1">
                   {Object.entries(validationErrors).map(([field, message]) => (
-                    <li key={field} className="text-sm text-red-800 dark:text-red-300 flex items-start gap-2">
+                    <li key={field} className="text-sm text-red-800 flex items-start gap-2">
                       <span>•</span>
                       <span>{message}</span>
                     </li>
@@ -390,15 +395,15 @@ const DocumentFormPage: React.FC = () => {
 
         {/* Quick Add Mode Toggle - Only show for new documents */}
         {!isEditing && (
-          <div className="bg-gradient-to-r from-blue-50 to-primary-50 dark:from-blue-900/20 dark:to-primary-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-5 mb-6">
+          <div className="bg-gradient-to-r from-blue-50 to-primary-50 border-2 border-blue-200 rounded-xl p-5 mb-6">
             <div className="flex items-center justify-between mb-3">
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <span className="text-2xl">{isQuickMode ? '⚡' : '📋'}</span>
                   <span>{isQuickMode ? 'Quick Add Mode' : 'Full Details Mode'}</span>
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {isQuickMode 
+                <p className="text-sm text-slate-700 mt-1">
+                  {isQuickMode
                     ? 'Just 3 essential fields - fast and simple'
                     : 'All fields available for complete information'}
                 </p>
@@ -406,8 +411,8 @@ const DocumentFormPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsQuickMode(!isQuickMode)}
-                className={`relative inline-flex h-10 w-20 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-                  isQuickMode ? 'bg-primary-600 dark:bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
+                className={`relative inline-flex h-10 w-20 items-center rounded-full transition-colors focus:outline-none focus:ring-4 focus:ring-primary-500/20 ${
+                  isQuickMode ? 'bg-primary-600' : 'bg-slate-300'
                 }`}
                 aria-label="Toggle quick add mode"
               >
@@ -419,7 +424,7 @@ const DocumentFormPage: React.FC = () => {
               </button>
             </div>
             {!isQuickMode && (
-              <p className="text-xs text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 rounded-lg px-3 py-2 mt-3">
+              <p className="text-xs text-blue-800 bg-blue-100 rounded-lg px-3 py-2 mt-3">
                 💡 Tip: Start with Quick Add, you can always edit later to add more details
               </p>
             )}
@@ -428,15 +433,15 @@ const DocumentFormPage: React.FC = () => {
 
         {/* Owner/Profile */}
         <div>
-          <label htmlFor="profile-select" className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="profile-select" className="block text-base font-semibold text-slate-900 mb-2">
             Owner
-            {isQuickMode && <span className="text-red-500 ml-1" aria-label="required">*</span>}
+            {isQuickMode && <span className="text-red-600 ml-1" aria-label="required">*</span>}
           </label>
           <select
             id="profile-select"
             value={profileId}
             onChange={e => setProfileId(e.target.value)}
-            className="input"
+            className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
             required
             aria-required="true"
             aria-label="Select document owner profile"
@@ -451,52 +456,52 @@ const DocumentFormPage: React.FC = () => {
 
         {/* Document Type */}
         <div>
-          <label htmlFor="document-type-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="document-type-select" className="block text-base font-semibold text-slate-900 mb-2">
             Document Type
-            <span className="text-red-500 ml-1" aria-label="required">*</span>
+            <span className="text-red-600 ml-1" aria-label="required">*</span>
           </label>
           <select
             id="document-type-select"
             value={documentType}
             onChange={e => setDocumentType(e.target.value as DocumentType)}
-            className="input"
+            className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px] disabled:bg-slate-100 disabled:cursor-not-allowed"
             required
             disabled={isEditing}
             aria-required="true"
             aria-label="Select document type"
           >
             <optgroup label="Identity">
-              <option value="passport">🛂 Passport</option>
-              <option value="national_id">🪪 National/Resident ID</option>
-              <option value="driving_license">🚗 Driving License</option>
+              <option value="passport">{DOCUMENT_TYPE_CONFIGS.passport.emoji} {DOCUMENT_TYPE_CONFIGS.passport.label}</option>
+              <option value="national_id">{DOCUMENT_TYPE_CONFIGS.national_id.emoji} {DOCUMENT_TYPE_CONFIGS.national_id.label}</option>
+              <option value="driving_license">{DOCUMENT_TYPE_CONFIGS.driving_license.emoji} {DOCUMENT_TYPE_CONFIGS.driving_license.label}</option>
             </optgroup>
             <optgroup label="Immigration">
-              <option value="visa">✈️ Visa</option>
-              <option value="residence_permit">🏠 Residence Permit</option>
+              <option value="visa">{DOCUMENT_TYPE_CONFIGS.visa.emoji} {DOCUMENT_TYPE_CONFIGS.visa.label}</option>
+              <option value="residence_permit">{DOCUMENT_TYPE_CONFIGS.residence_permit.emoji} {DOCUMENT_TYPE_CONFIGS.residence_permit.label}</option>
             </optgroup>
             <optgroup label="Insurance & Cards">
-              <option value="insurance">🛡️ Insurance</option>
-              <option value="bank_card">💳 Bank/Credit Card</option>
-              <option value="medical_card">🏥 Medical/Health Card</option>
+              <option value="insurance">{DOCUMENT_TYPE_CONFIGS.insurance.emoji} {DOCUMENT_TYPE_CONFIGS.insurance.label}</option>
+              <option value="bank_card">{DOCUMENT_TYPE_CONFIGS.bank_card.emoji} {DOCUMENT_TYPE_CONFIGS.bank_card.label}</option>
+              <option value="medical_card">{DOCUMENT_TYPE_CONFIGS.medical_card.emoji} {DOCUMENT_TYPE_CONFIGS.medical_card.label}</option>
             </optgroup>
             <optgroup label="Other">
-              <option value="custom">📄 Custom Document</option>
+              <option value="custom">{DOCUMENT_TYPE_CONFIGS.custom.emoji} {DOCUMENT_TYPE_CONFIGS.custom.label}</option>
             </optgroup>
           </select>
         </div>
 
         {/* Title */}
         <div>
-          <label htmlFor="document-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="document-title" className="block text-base font-semibold text-slate-900 mb-2">
             Title
-            <span className="text-red-500 ml-1" aria-label="required">*</span>
+            <span className="text-red-600 ml-1" aria-label="required">*</span>
           </label>
           <input
             id="document-title"
             type="text"
             value={title}
             onChange={e => setTitle(e.target.value)}
-            className={`input ${validationErrors.title ? 'border-red-500 dark:border-red-400' : ''}`}
+            className={`w-full px-4 py-3.5 rounded-xl border-2 text-slate-900 bg-white text-base focus:ring-4 transition-all min-h-[56px] ${validationErrors.title ? 'border-red-500 focus:border-red-500 focus:ring-red-500/15' : 'border-slate-200 focus:border-primary-500 focus:ring-primary-500/15'}`}
             placeholder="e.g., Passport"
             required
             aria-required="true"
@@ -504,7 +509,7 @@ const DocumentFormPage: React.FC = () => {
             aria-describedby={validationErrors.title ? 'title-error' : undefined}
           />
           {validationErrors.title && (
-            <p id="title-error" className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
+            <p id="title-error" className="mt-2 text-sm text-red-700 font-medium" role="alert">
               {validationErrors.title}
             </p>
           )}
@@ -513,9 +518,9 @@ const DocumentFormPage: React.FC = () => {
         {/* Type-specific Number Field */}
         {documentType === 'passport' && (
           <div>
-            <label htmlFor="passport-number" className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="passport-number" className="block text-base font-semibold text-slate-900 mb-2">
               Passport Number
-              {isQuickMode && <span className="text-red-500 ml-1" aria-label="required">*</span>}
+              {isQuickMode && <span className="text-red-600 ml-1" aria-label="required">*</span>}
             </label>
             <input
               id="passport-number"
@@ -527,7 +532,7 @@ const DocumentFormPage: React.FC = () => {
                 setValidationErrors(prev => ({ ...prev, passportNumber: '' }));
               }}
               onBlur={e => setPassportNumber(formatUpperCase(e.target.value))}
-              className={`input text-lg ${validationErrors.passportNumber ? 'border-red-500 dark:border-red-400 focus:ring-red-100 dark:focus:ring-red-900/50' : ''}`}
+              className={`w-full px-4 py-3.5 rounded-xl border-2 bg-white text-slate-900 text-base focus:ring-4 transition-all min-h-[56px] ${validationErrors.passportNumber ? 'border-red-500 focus:border-red-500 focus:ring-red-500/15' : 'border-slate-200 focus:border-primary-500 focus:ring-primary-500/15'}`}
               placeholder="e.g., N1234567 or AB123456"
               required={isQuickMode}
               aria-required={isQuickMode}
@@ -535,16 +540,16 @@ const DocumentFormPage: React.FC = () => {
               aria-describedby={validationErrors.passportNumber ? 'passport-number-error' : 'passport-number-hint'}
             />
             {validationErrors.passportNumber ? (
-              <div id="passport-number-error" className="mt-2 flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3" role="alert">
-                <AlertCircle size={18} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+              <div id="passport-number-error" className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3" role="alert">
+                <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <p className="text-sm font-semibold text-red-700">
                   {validationErrors.passportNumber}
                 </p>
               </div>
             ) : (
               <div id="passport-number-hint" className="mt-2 flex items-start gap-2">
                 <span className="text-lg" aria-hidden="true">💡</span>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-slate-600">
                   Found on the top-right corner of your passport. Usually starts with a letter followed by numbers.
                 </p>
               </div>
@@ -554,9 +559,9 @@ const DocumentFormPage: React.FC = () => {
 
         {documentType === 'driving_license' && (
           <div>
-            <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-base font-semibold text-slate-900 mb-2">
               License Number
-              {isQuickMode && <span className="text-red-500 ml-1">*</span>}
+              {isQuickMode && <span className="text-red-600 ml-1">*</span>}
             </label>
             <input
               type="text"
@@ -566,21 +571,21 @@ const DocumentFormPage: React.FC = () => {
                 setValidationErrors(prev => ({ ...prev, licenseNumber: '' }));
               }}
               onBlur={e => setLicenseNumber(formatUpperCase(e.target.value))}
-              className={`input text-lg ${validationErrors.licenseNumber ? 'border-red-500 dark:border-red-400 focus:ring-red-100 dark:focus:ring-red-900/50' : ''}`}
+              className={`w-full px-4 py-3.5 rounded-xl border-2 bg-white text-slate-900 text-base focus:ring-4 transition-all min-h-[56px] ${validationErrors.licenseNumber ? 'border-red-500 focus:border-red-500 focus:ring-red-500/15' : 'border-slate-200 focus:border-primary-500 focus:ring-primary-500/15'}`}
               placeholder="e.g., DL123456789 or D1234567"
               required={isQuickMode}
             />
             {validationErrors.licenseNumber ? (
-              <div className="mt-2 flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                <AlertCircle size={18} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+              <div className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+                <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm font-semibold text-red-700">
                   {validationErrors.licenseNumber}
                 </p>
               </div>
             ) : (
               <div className="mt-2 flex items-start gap-2">
                 <span className="text-lg">💡</span>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-slate-600">
                   Located at the top of your driver's license card. Format varies by region.
                 </p>
               </div>
@@ -590,7 +595,7 @@ const DocumentFormPage: React.FC = () => {
 
         {documentType === 'national_id' && (
           <div>
-            <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-base font-semibold text-slate-900 mb-2">
               ID Number
               {isQuickMode && <span className="text-red-500 ml-1">*</span>}
             </label>
@@ -607,16 +612,16 @@ const DocumentFormPage: React.FC = () => {
               required={isQuickMode}
             />
             {validationErrors.idNumber ? (
-              <div className="mt-2 flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                <AlertCircle size={18} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+              <div className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+                <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm font-semibold text-red-700">
                   {validationErrors.idNumber}
                 </p>
               </div>
             ) : (
               <div className="mt-2 flex items-start gap-2">
                 <span className="text-lg">💡</span>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-slate-600">
                   Your government-issued identification number. Check the front of your ID card.
                 </p>
               </div>
@@ -635,7 +640,7 @@ const DocumentFormPage: React.FC = () => {
                 value={permitNumber}
                 onChange={e => setPermitNumber(e.target.value)}
                 onBlur={e => setPermitNumber(formatUpperCase(e.target.value))}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 placeholder="RP-2024-1234"
               />
               <p className="text-xs text-gray-500 mt-1">Auto-formats to UPPERCASE</p>
@@ -647,7 +652,7 @@ const DocumentFormPage: React.FC = () => {
               <select
                 value={permitType}
                 onChange={e => setPermitType(e.target.value)}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
               >
                 <option value="">Select type...</option>
                 {documentType === 'visa' ? (
@@ -680,7 +685,7 @@ const DocumentFormPage: React.FC = () => {
                 value={policyNumber}
                 onChange={e => setPolicyNumber(e.target.value)}
                 onBlur={e => setPolicyNumber(formatUpperCase(e.target.value))}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 placeholder="POL-2024-123456"
               />
               <p className="text-xs text-gray-500 mt-1">Auto-formats to UPPERCASE</p>
@@ -692,7 +697,7 @@ const DocumentFormPage: React.FC = () => {
               <select
                 value={insuranceType}
                 onChange={e => setInsuranceType(e.target.value)}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 required
               >
                 <option value="">Select insurance type...</option>
@@ -711,7 +716,7 @@ const DocumentFormPage: React.FC = () => {
                 type="text"
                 value={provider}
                 onChange={e => setProvider(e.target.value)}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 placeholder="Blue Cross Blue Shield"
               />
             </div>
@@ -724,7 +729,7 @@ const DocumentFormPage: React.FC = () => {
                   type="text"
                   value={coverageAmount}
                   onChange={e => setCoverageAmount(e.target.value)}
-                  className="input"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                   placeholder="$500,000"
                 />
               </div>
@@ -734,7 +739,7 @@ const DocumentFormPage: React.FC = () => {
                   type="text"
                   value={premium}
                   onChange={e => setPremium(e.target.value)}
-                  className="input"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                   placeholder="$450/month"
                 />
               </div>
@@ -752,7 +757,7 @@ const DocumentFormPage: React.FC = () => {
                 type="text"
                 value={cardNumber}
                 onChange={e => setCardNumber(e.target.value)}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 placeholder="**** **** **** 1234"
               />
             </div>
@@ -762,7 +767,7 @@ const DocumentFormPage: React.FC = () => {
                 <select
                   value={cardType}
                   onChange={e => setCardType(e.target.value)}
-                  className="input"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 >
                   <option value="">Select...</option>
                   <option value="Visa">Visa</option>
@@ -777,7 +782,7 @@ const DocumentFormPage: React.FC = () => {
                   type="text"
                   value={bankName}
                   onChange={e => setBankName(e.target.value)}
-                  className="input"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                   placeholder="Chase Bank"
                 />
               </div>
@@ -793,7 +798,7 @@ const DocumentFormPage: React.FC = () => {
                 type="text"
                 value={cardNumber}
                 onChange={e => setCardNumber(e.target.value)}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 placeholder="MED-123456789"
               />
             </div>
@@ -805,7 +810,7 @@ const DocumentFormPage: React.FC = () => {
                 type="text"
                 value={provider}
                 onChange={e => setProvider(e.target.value)}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 placeholder="Blue Cross Health"
               />
             </div>
@@ -814,7 +819,7 @@ const DocumentFormPage: React.FC = () => {
 
         {/* Expiry Date - ALWAYS SHOW (Critical field) */}
         <div>
-          <label htmlFor="expiry-date" className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="expiry-date" className="block text-base font-semibold text-slate-900 mb-2">
             Expiry Date
             {isQuickMode && <span className="text-red-500 ml-1" aria-label="required">*</span>}
           </label>
@@ -837,26 +842,26 @@ const DocumentFormPage: React.FC = () => {
               id="expiry-date-error"
               className={`mt-2 flex items-start gap-2 rounded-lg p-3 border ${
                 validationErrors.expiryDate.includes('⏰') 
-                  ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' 
+                  ? 'bg-yellow-50 border-yellow-200' 
                   : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
               }`}
               role="alert"
             >
               <AlertCircle size={18} className={`flex-shrink-0 mt-0.5 ${
                 validationErrors.expiryDate.includes('⏰')
-                  ? 'text-yellow-600 dark:text-yellow-400'
-                  : 'text-red-600 dark:text-red-400'
+                  ? 'text-yellow-600'
+                  : 'text-red-600'
               }`} aria-hidden="true" />
               <p className={`text-sm font-semibold ${
                 validationErrors.expiryDate.includes('⏰')
-                  ? 'text-yellow-700 dark:text-yellow-300'
-                  : 'text-red-700 dark:text-red-300'
+                  ? 'text-yellow-700'
+                  : 'text-red-700'
               }`}>
                 {validationErrors.expiryDate}
               </p>
             </div>
           ) : isQuickMode && (
-            <p id="expiry-date-hint" className="text-sm text-gray-600 dark:text-gray-400 mt-2 flex items-center gap-2">
+            <p id="expiry-date-hint" className="text-sm text-slate-600 mt-2 flex items-center gap-2">
               <span aria-hidden="true">💡</span>
               <span>This helps you track when to renew your document</span>
             </p>
@@ -867,8 +872,8 @@ const DocumentFormPage: React.FC = () => {
         {!isQuickMode && (
           <>
             {/* Divider */}
-            <div className="pt-4 border-t-2 border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div className="pt-4 border-t-2 border-slate-200">
+              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <span>📋</span>
                 <span>Additional Details</span>
               </h3>
@@ -876,34 +881,34 @@ const DocumentFormPage: React.FC = () => {
 
             {/* Common Fields */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+              <label className="block text-sm font-medium text-slate-900 mb-2">Full Name</label>
               <input
                 type="text"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 onBlur={e => setFullName(formatName(e.target.value))}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 placeholder="John Doe"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Auto-formats to Title Case</p>
+              <p className="text-xs text-slate-600 mt-1">Auto-formats to Title Case</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date of Birth</label>
+              <label className="block text-sm font-medium text-slate-900 mb-2">Date of Birth</label>
               <input
                 type="date"
                 value={dateOfBirth}
                 onChange={e => setDateOfBirth(e.target.value)}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nationality</label>
+              <label className="block text-sm font-medium text-slate-900 mb-2">Nationality</label>
               <select
                 value={nationality}
                 onChange={e => setNationality(e.target.value)}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
               >
                 <option value="">Select nationality...</option>
                 {COUNTRIES.map((country, index) => {
@@ -920,7 +925,7 @@ const DocumentFormPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Issue Date</label>
+              <label className="block text-sm font-medium text-slate-900 mb-2">Issue Date</label>
               <input
                 type="date"
                 value={issueDate}
@@ -931,9 +936,9 @@ const DocumentFormPage: React.FC = () => {
                 className={`input ${validationErrors.issueDate ? 'border-red-500 dark:border-red-400' : ''}`}
               />
               {validationErrors.issueDate && (
-                <div className="mt-2 flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                  <AlertCircle size={18} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+                <div className="mt-2 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <AlertCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm font-semibold text-red-700">
                     {validationErrors.issueDate}
                   </p>
                 </div>
@@ -941,14 +946,14 @@ const DocumentFormPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-slate-900 mb-2">
                 Issuing Authority
               </label>
               <input
                 type="text"
                 value={issuingAuthority}
                 onChange={e => setIssuingAuthority(e.target.value)}
-                className="input"
+                className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-base focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 transition-all min-h-[56px]"
                 placeholder="US Department of State"
               />
             </div>
@@ -1002,8 +1007,8 @@ const DocumentFormPage: React.FC = () => {
 
         {/* Quick Mode Summary */}
         {isQuickMode && !isEditing && (
-          <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-xl p-4">
-            <p className="text-sm text-green-800 dark:text-green-200 font-medium flex items-center gap-2">
+          <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+            <p className="text-sm text-green-800 font-medium flex items-center gap-2">
               <span>✨</span>
               <span>That's it! Just 3 quick fields. You can add more details later by editing.</span>
             </p>
@@ -1015,12 +1020,12 @@ const DocumentFormPage: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="btn-primary w-full text-lg py-4"
+            className="w-full px-7 py-4 rounded-xl bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white font-bold text-lg transition-all shadow-md hover:shadow-lg active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed min-h-[56px]"
           >
             {isLoading ? 'Saving...' : isEditing ? 'Save Changes' : isQuickMode ? '⚡ Quick Add Document' : '📋 Add Document with Full Details'}
           </button>
           {!isEditing && !isQuickMode && (
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-3">
+            <p className="text-center text-sm text-slate-600 mt-3">
               Or switch to Quick Add mode above for faster entry
             </p>
           )}
