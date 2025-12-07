@@ -106,7 +106,7 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 pb-20">
+    <div className="min-h-screen bg-slate-900 pb-24 md:pb-20 safe-bottom">
       {/* Header */}
       <div className="bg-slate-800/50 backdrop-blur-lg border-b border-slate-700/50 sticky top-0 z-10 safe-top shadow-lg">
         <div className="px-5 py-5">
