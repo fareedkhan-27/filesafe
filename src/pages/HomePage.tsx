@@ -63,19 +63,19 @@ const HomePage: React.FC = () => {
   const myDocuments = documents.filter(d => d.profileId === currentProfileId);
 
   return (
-    <div className="min-h-screen bg-slate-900 pb-24 md:pb-20 safe-bottom">
-      {/* Header */}
-      <div className="bg-slate-800/50 backdrop-blur-lg border-b border-slate-700/50 sticky top-0 z-10 safe-top shadow-lg">
-        <div className="px-6 py-6">
+    <div className="min-h-screen bg-slate-50 pb-24 md:pb-20 safe-bottom">
+      {/* Header - Clean, light iOS style */}
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-10 safe-top shadow-sm">
+        <div className="px-5 py-5">
           {/* Top Bar */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-5">
             <div className="flex items-baseline gap-3">
               <div>
-                <h1 className="text-4xl font-bold text-white tracking-tight">FileSafe</h1>
-                <p className="text-base text-slate-400 mt-1">Your secure document vault</p>
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">FileSafe</h1>
+                <p className="text-sm text-slate-600 mt-0.5">Your secure document vault</p>
               </div>
-              <span className="px-2.5 py-1 text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-lg">
-                v1.1.0
+              <span className="px-2 py-0.5 text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200 rounded-md">
+                v1.1.1
               </span>
             </div>
             <UserMenu />
@@ -108,17 +108,17 @@ const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Content */}
-      <main id="main-content" className="px-6 py-6">
+      {/* Content - Light, clean layout */}
+      <main id="main-content" className="px-5 py-5">
         {searchResult ? (
           <div>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-slate-900">
                 {showingExpiring ? 'Expiring Documents' : 'Search Results'}
               </h2>
               <button
                 onClick={() => setSearchResult(null)}
-                className="text-base text-cyan-400 font-semibold hover:bg-cyan-500/10 px-5 py-2.5 rounded-xl transition-all active:scale-95"
+                className="text-sm text-primary-600 font-semibold hover:bg-primary-50 px-4 py-2 rounded-lg transition-all active:scale-95"
                 aria-label="Clear search results and return to all documents"
               >
                 Clear
@@ -126,13 +126,13 @@ const HomePage: React.FC = () => {
             </div>
 
             {searchResult.documents.length === 0 ? (
-              <div className="card text-center py-12">
-                <FileText className="mx-auto text-slate-600 mb-3" size={56} />
-                <p className="text-lg text-slate-300">No documents found</p>
-                <p className="text-base text-slate-400 mt-2">Try a different search</p>
+              <div className="bg-white border border-slate-200 rounded-xl text-center py-12 px-5">
+                <FileText className="mx-auto text-slate-400 mb-3" size={56} />
+                <p className="text-lg font-semibold text-slate-900">No documents found</p>
+                <p className="text-base text-slate-600 mt-2">Try a different search</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {searchResult.documents.map(doc => {
                   const docProfile = profiles.find(p => p.id === doc.profileId);
                   return (
@@ -152,12 +152,12 @@ const HomePage: React.FC = () => {
           <div>
             {/* My Documents */}
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-slate-900">
                 {currentProfile?.name}'s Documents
               </h2>
               <button
                 onClick={() => navigate('/documents/new')}
-                className="flex items-center gap-2 text-base text-white bg-gradient-to-r from-cyan-500 to-teal-500 font-semibold hover:from-cyan-600 hover:to-teal-600 px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:shadow-cyan-500/30 active:scale-95"
+                className="flex items-center gap-2 text-base text-white bg-primary-500 font-semibold hover:bg-primary-600 active:bg-primary-700 px-5 py-3 rounded-xl transition-all shadow-sm active:scale-95"
                 aria-label="Add new document to your vault"
               >
                 <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
@@ -166,37 +166,37 @@ const HomePage: React.FC = () => {
             </div>
 
             {myDocuments.length === 0 ? (
-              <div className="space-y-6">
-                {/* Welcome Message */}
-                <div className="card text-center py-12">
-                  <FileText className="mx-auto text-slate-600 mb-4" size={64} />
-                  <h3 className="text-2xl font-bold text-white mb-2">
+              <div className="space-y-5">
+                {/* Welcome Message - Clean light card */}
+                <div className="bg-white border border-slate-200 rounded-xl text-center py-12 px-5">
+                  <FileText className="mx-auto text-slate-400 mb-4" size={64} />
+                  <h3 className="text-2xl font-bold text-slate-900 mb-2">
                     Let's add your first document!
                   </h3>
-                  <p className="text-lg text-slate-400 mb-2">
+                  <p className="text-base text-slate-600">
                     Choose what you'd like to add:
                   </p>
                 </div>
 
-                {/* Document Type Suggestions */}
-                <div className="grid grid-cols-1 gap-4">
+                {/* Document Type Suggestions - Clean cards */}
+                <div className="grid grid-cols-1 gap-3">
                   {/* Passport */}
                   <button
                     onClick={() => navigate('/documents/new?type=passport')}
-                    className="card hover:shadow-xl transition-all duration-200 active:scale-98 text-left p-6 group"
+                    className="bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-200 active:scale-98 text-left p-5 rounded-xl group"
                     aria-label="Add a new passport - Most commonly used, quick to add"
                   >
                     <div className="flex items-center gap-4">
                       <div className="text-5xl group-hover:scale-110 transition-transform" aria-hidden="true">🛂</div>
                       <div className="flex-1">
-                        <h4 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">
+                        <h4 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-primary-600 transition-colors">
                           Passport
                         </h4>
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-slate-600">
                           Most commonly used • Quick to add
                         </p>
                       </div>
-                      <div className="text-slate-600 group-hover:text-cyan-400 transition-colors" aria-hidden="true">
+                      <div className="text-slate-400 group-hover:text-primary-500 transition-colors text-xl" aria-hidden="true">
                         →
                       </div>
                     </div>
@@ -205,20 +205,20 @@ const HomePage: React.FC = () => {
                   {/* Driver's License */}
                   <button
                     onClick={() => navigate('/documents/new?type=driving_license')}
-                    className="card hover:shadow-xl transition-all duration-200 active:scale-98 text-left p-6 group"
+                    className="bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-200 active:scale-98 text-left p-5 rounded-xl group"
                     aria-label="Add a new driver's license - For identification and driving"
                   >
                     <div className="flex items-center gap-4">
                       <div className="text-5xl group-hover:scale-110 transition-transform" aria-hidden="true">🚗</div>
                       <div className="flex-1">
-                        <h4 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">
+                        <h4 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-primary-600 transition-colors">
                           Driver's License
                         </h4>
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-slate-600">
                           For identification and driving
                         </p>
                       </div>
-                      <div className="text-slate-600 group-hover:text-cyan-400 transition-colors" aria-hidden="true">
+                      <div className="text-slate-400 group-hover:text-primary-500 transition-colors text-xl" aria-hidden="true">
                         →
                       </div>
                     </div>
@@ -227,20 +227,20 @@ const HomePage: React.FC = () => {
                   {/* National ID */}
                   <button
                     onClick={() => navigate('/documents/new?type=national_id')}
-                    className="card hover:shadow-xl transition-all duration-200 active:scale-98 text-left p-6 group"
+                    className="bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all duration-200 active:scale-98 text-left p-5 rounded-xl group"
                     aria-label="Add a new national ID - Government issued identification"
                   >
                     <div className="flex items-center gap-4">
                       <div className="text-5xl group-hover:scale-110 transition-transform" aria-hidden="true">🪪</div>
                       <div className="flex-1">
-                        <h4 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">
+                        <h4 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-primary-600 transition-colors">
                           National ID
                         </h4>
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-slate-600">
                           Government issued identification
                         </p>
                       </div>
-                      <div className="text-slate-600 group-hover:text-cyan-400 transition-colors" aria-hidden="true">
+                      <div className="text-slate-400 group-hover:text-primary-500 transition-colors text-xl" aria-hidden="true">
                         →
                       </div>
                     </div>
@@ -251,7 +251,7 @@ const HomePage: React.FC = () => {
                 <div className="text-center">
                   <button
                     onClick={() => navigate('/documents/new')}
-                    className="text-cyan-400 hover:text-cyan-300 font-medium text-base hover:underline transition-colors"
+                    className="text-primary-600 hover:text-primary-700 font-semibold text-base hover:underline transition-colors"
                     aria-label="Browse all available document types to add"
                   >
                     Or browse all document types →
@@ -259,7 +259,7 @@ const HomePage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {myDocuments.map(doc => (
                   <DocumentCard
                     key={doc.id}
@@ -273,10 +273,10 @@ const HomePage: React.FC = () => {
         )}
       </main>
 
-      {/* Version Footer */}
+      {/* Version Footer - Subtle light badge */}
       <div className="fixed bottom-20 right-4 z-10">
-        <div className="bg-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-full px-3 py-1.5 text-xs text-slate-400">
-          v1.1.0
+        <div className="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-full px-3 py-1.5 text-xs text-slate-600 shadow-sm">
+          v1.1.1
         </div>
       </div>
 

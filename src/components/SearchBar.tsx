@@ -28,8 +28,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <form onSubmit={handleSubmit} className="w-full" role="search">
       <div className="relative">
-        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" aria-hidden="true">
-          <Search size={22} strokeWidth={2} />
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">
+          <Search size={20} strokeWidth={2.5} />
         </div>
 
         <input
@@ -37,12 +37,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="w-full pl-14 pr-14 py-4.5 rounded-2xl border-2 border-gray-200 dark:border-gray-700
-                     bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100
-                     placeholder:text-gray-400 dark:placeholder:text-gray-500
-                     focus:border-primary-500 dark:focus:border-primary-400
-                     focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-900/50
-                     text-base font-medium transition-all shadow-sm"
+          className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-slate-200
+                     bg-slate-50 text-slate-900
+                     placeholder:text-slate-500
+                     focus:border-primary-500 focus:bg-white
+                     focus:ring-4 focus:ring-primary-500/10
+                     text-base font-medium transition-all shadow-sm
+                     hover:border-slate-300"
           aria-label="Search your documents"
           aria-describedby="search-hint"
         />
@@ -53,12 +54,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
         <button
           type="button"
           onClick={handleVoiceInput}
-          className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500
-                     hover:text-primary-600 dark:hover:text-primary-400 active:scale-95 transition-all"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400
+                     hover:text-primary-600 active:scale-95 transition-all p-1 rounded-lg hover:bg-slate-100"
           aria-label="Voice search (coming soon)"
           title="Voice search"
         >
-          <Mic size={22} strokeWidth={2} />
+          <Mic size={20} strokeWidth={2.5} />
         </button>
       </div>
     </form>

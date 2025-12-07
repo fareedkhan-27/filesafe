@@ -25,23 +25,23 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   const getDocumentIcon = () => {
     switch (document.type) {
       case 'passport':
-        return <Plane className="text-cyan-400" size={24} />;
+        return <Plane className="text-primary-600" size={22} />;
       case 'driving_license':
-        return <CreditCard className="text-cyan-400" size={24} />;
+        return <CreditCard className="text-primary-600" size={22} />;
       case 'national_id':
-        return <BadgeCheck className="text-cyan-400" size={24} />;
+        return <BadgeCheck className="text-primary-600" size={22} />;
       case 'visa':
-        return <Plane className="text-blue-400" size={24} />;
+        return <Plane className="text-blue-600" size={22} />;
       case 'residence_permit':
-        return <Home className="text-emerald-400" size={24} />;
+        return <Home className="text-emerald-600" size={22} />;
       case 'insurance':
-        return <Shield className="text-purple-400" size={24} />;
+        return <Shield className="text-purple-600" size={22} />;
       case 'bank_card':
-        return <Wallet className="text-teal-400" size={24} />;
+        return <Wallet className="text-teal-600" size={22} />;
       case 'medical_card':
-        return <Heart className="text-red-400" size={24} />;
+        return <Heart className="text-red-600" size={22} />;
       default:
-        return <FileText className="text-slate-400" size={24} />;
+        return <FileText className="text-slate-500" size={22} />;
     }
   };
 
@@ -88,8 +88,8 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`card cursor-pointer hover:shadow-md transition-shadow animate-fadeIn ${
-        compact ? 'p-3' : ''
+      className={`bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all animate-fadeIn ${
+        compact ? 'p-3' : 'p-4'
       }`}
       role="button"
       tabIndex={0}
@@ -101,17 +101,17 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
       }}
       aria-label={`View details for ${documentTitle}${expiryInfo}`}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-4">
         <div className="flex-shrink-0 mt-1">{getDocumentIcon()}</div>
 
         <div className="flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
-              <h3 className="font-semibold text-gray-900">
+              <h3 className="font-semibold text-slate-900 text-base">
                 {profile ? `${profile.name} · ${document.title}` : document.title}
               </h3>
-              <p className="text-sm text-gray-500 capitalize">
+              <p className="text-sm text-slate-600 capitalize">
                 {document.type.replace('_', ' ')}
               </p>
             </div>
@@ -156,7 +156,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
           )}
 
           {expiryStatus && expiryStatus.status !== 'valid' && !compact && (
-            <p className={`text-sm mt-2 ${expiryStatus.status === 'expired' ? 'text-red-600' : 'text-yellow-600'}`}>
+            <p className={`text-sm mt-2 font-medium ${expiryStatus.status === 'expired' ? 'text-red-700' : 'text-amber-700'}`}>
               {expiryStatus.message}
             </p>
           )}
@@ -176,18 +176,18 @@ const FieldDisplay: React.FC<{
   if (!value) return null;
 
   return (
-    <div className={`flex items-center justify-between gap-2 p-2 rounded-lg ${highlighted ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50'}`}>
+    <div className={`flex items-center justify-between gap-2 p-3 rounded-lg ${highlighted ? 'bg-primary-50 border border-primary-200' : 'bg-slate-50 border border-slate-200'}`}>
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="font-medium text-gray-900 truncate">{value}</p>
+        <p className="text-xs text-slate-600 font-medium">{label}</p>
+        <p className="font-semibold text-slate-900 truncate">{value}</p>
       </div>
       <button
         onClick={(e) => onCopy(value, e)}
-        className="flex-shrink-0 p-2 text-gray-400 hover:text-primary-600 active:text-primary-700 transition-colors"
+        className="flex-shrink-0 p-2 text-slate-400 hover:text-primary-600 active:text-primary-700 transition-colors rounded-lg hover:bg-slate-100 min-w-touch min-h-touch"
         aria-label={`Copy ${label}: ${value}`}
         title="Copy to clipboard"
       >
-        <Copy size={16} />
+        <Copy size={18} />
       </button>
     </div>
   );
