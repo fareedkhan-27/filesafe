@@ -307,6 +307,10 @@ export const createDocument = async (document: Document): Promise<void> => {
 };
 
 export const updateDocument = async (id: string, updates: Partial<Document>): Promise<void> => {
+  // IMPORTANT: Document type changes are not allowed for existing documents
+  // The UI should disable the Document Type field in Edit mode
+  // If 'type' is included in updates, it will be applied, but the UI prevents this
+  // If document type changes are ever needed, add explicit validation here
   await db.documents.update(id, { ...updates, updatedAt: new Date().toISOString() });
 };
 

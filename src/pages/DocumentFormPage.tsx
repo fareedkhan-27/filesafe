@@ -60,6 +60,23 @@ const DocumentFormPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const isEditing = id !== 'new';
 
+  // Helper function to get display label for document type
+  // Used to sync Title with Document Type in NEW document mode
+  const getDocumentTypeLabel = (type: DocumentType): string => {
+    const typeLabels: Record<DocumentType, string> = {
+      passport: 'Passport',
+      driving_license: 'Driving License',
+      national_id: 'National ID',
+      visa: 'Visa',
+      residence_permit: 'Residence Permit',
+      insurance: 'Insurance Policy',
+      bank_card: 'Bank Card',
+      medical_card: 'Medical Card',
+      custom: 'Document'
+    };
+    return typeLabels[type];
+  };
+
   useEffect(() => {
     const loadDocument = async () => {
       if (isEditing && id) {
@@ -99,31 +116,25 @@ const DocumentFormPage: React.FC = () => {
   }, [id, isEditing, navigate]);
 
   useEffect(() => {
-    // Pre-fill document type from URL parameter
+    // Pre-fill document type from URL parameter (NEW documents only)
     const typeParam = searchParams.get('type');
     if (typeParam && !isEditing) {
       const validTypes: DocumentType[] = ['passport', 'driving_license', 'national_id', 'visa', 'residence_permit', 'insurance', 'bank_card', 'medical_card', 'custom'];
       if (validTypes.includes(typeParam as DocumentType)) {
-        setDocumentType(typeParam as DocumentType);
+        const newType = typeParam as DocumentType;
+        setDocumentType(newType);
+        // Sync title when document type is set from URL parameter
+        setTitle(getDocumentTypeLabel(newType));
       }
     }
   }, [searchParams, isEditing]);
 
   useEffect(() => {
-    // Set default title based on document type
+    // Set initial default title for NEW documents only (when title is empty)
+    // This handles the case when form first loads without URL parameter
+    // NOTE: This only runs when title is empty to avoid overwriting user edits
     if (!isEditing && !title) {
-      const defaultTitles: Record<DocumentType, string> = {
-        passport: 'Passport',
-        driving_license: 'Driving License',
-        national_id: 'National ID',
-        visa: 'Visa',
-        residence_permit: 'Residence Permit',
-        insurance: 'Insurance Policy',
-        bank_card: 'Bank Card',
-        medical_card: 'Medical Card',
-        custom: 'Document'
-      };
-      setTitle(defaultTitles[documentType]);
+      setTitle(getDocumentTypeLabel(documentType));
     }
   }, [documentType, isEditing, title]);
 
@@ -270,6 +281,10 @@ const DocumentFormPage: React.FC = () => {
 
     const documentData: Partial<Document> = {
       profileId,
+      // IMPORTANT: In Edit mode, Document Type is disabled in UI and should not change
+      // The type field is included here for new documents, but for updates we rely on
+      // the UI being disabled to prevent changes. If document type changes are ever
+      // needed in Edit mode, this should be explicitly allowed and validated.
       type: documentType,
       title,
       full_name: fullName || undefined,
@@ -458,12 +473,25 @@ const DocumentFormPage: React.FC = () => {
           <select
             id="document-type-select"
             value={documentType}
-            onChange={e => setDocumentType(e.target.value as DocumentType)}
+            onChange={e => {
+              const newType = e.target.value as DocumentType;
+              setDocumentType(newType);
+              
+              // NEW DOCUMENT MODE: Auto-sync Title with Document Type
+              // When user changes Document Type, Title automatically updates to match
+              // User can still edit Title manually, but changing Document Type again will reset it
+              if (!isEditing) {
+                setTitle(getDocumentTypeLabel(newType));
+              }
+              // EDIT MODE: Document Type is disabled, so this onChange won't fire
+              // Title remains independent and editable in Edit mode
+            }}
             className="input"
             required
             disabled={isEditing}
             aria-required="true"
             aria-label="Select document type"
+            aria-describedby={isEditing ? 'document-type-readonly-hint' : undefined}
           >
             <optgroup label="Identity">
               <option value="passport">🛂 Passport</option>
@@ -483,6 +511,11 @@ const DocumentFormPage: React.FC = () => {
               <option value="custom">📄 Custom Document</option>
             </optgroup>
           </select>
+          {isEditing && (
+            <p id="document-type-readonly-hint" className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Document type cannot be changed for existing documents
+            </p>
+          )}
         </div>
 
         {/* Title */}
